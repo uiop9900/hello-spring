@@ -5,9 +5,11 @@ import hello.hellospring.repository.MemberRepository;
 import hello.hellospring.repository.MemoryMemberRepository;
 import org.springframework.stereotype.Service;
 
+import javax.transaction.Transactional;
 import java.util.List;
 import java.util.Optional;
 
+@Transactional
 public class MemberService {
 
     private final MemberRepository memberRepository; //interface라서 memory로 생성한다.
@@ -20,12 +22,20 @@ public class MemberService {
      * 회원가입
      */
     public Long join(Member member){
+
+        long start = System.currentTimeMillis();
+
         //동명이인 불가
         //optional로 감싸져있는 값이기때문에 optional을 이용한 메소드 사용가능
         validateDuplicateMember(member);
-
-        memberRepository.save(member);
-        return member.getId();
+        try {
+            memberRepository.save(member);
+            return member.getId();
+        } finally {
+            long finish = System.currentTimeMillis();
+            long timeMs = finish - start;
+            System.out.println("join= " + timeMs + "ms");
+        }
     }
 
     private void validateDuplicateMember(Member member) {
